@@ -1,4 +1,4 @@
-import { SC_ATTR, SC_ATTR_VERSION, SC_VERSION } from '../../constants';
+import { SC_ATTR, SC_ATTR_ACTIVE, SC_ATTR_VERSION, SC_VERSION } from '../../constants';
 import * as GroupIDAllocator from '../GroupIDAllocator';
 import StyleSheet from '../Sheet';
 
@@ -178,11 +178,15 @@ describe('reconstructWithOptions', () => {
         </style>
       `;
 
-      // Create sheet with shadow root - this will rehydrate once
+      // Create sheet with shadow root and manually rehydrate
       const originalSheet = new StyleSheet({ isServer: false, target: shadowRoot });
+      originalSheet.rehydrate();
 
-      // The style tag should be removed after rehydration
-      expect(shadowRoot.querySelector('style')).toBeNull();
+      // After rehydration, the old server-rendered tag should be removed
+      // and a new active tag should be created
+      const styleTags = shadowRoot.querySelectorAll('style');
+      expect(styleTags.length).toBe(1);
+      expect(styleTags[0].getAttribute(SC_ATTR)).toBe(SC_ATTR_ACTIVE);
 
       // Reconstruct with same target
       const newSheet = originalSheet.reconstructWithOptions({ target: shadowRoot });

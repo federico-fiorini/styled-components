@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { render } from '@testing-library/react';
 import { ServerStyleSheet, StyleSheetManager } from '../../base';
 import { SC_ATTR, SC_ATTR_ACTIVE, SC_ATTR_VERSION, SC_VERSION } from '../../constants';
@@ -302,16 +304,17 @@ describe('rehydrateSheet with different target types', () => {
     document.body.appendChild(hostElement);
     const shadowRoot = hostElement.attachShadow({ mode: 'open' });
 
-    const innerDiv = document.createElement('div');
-    shadowRoot.appendChild(innerDiv);
-
+    // Add styles first
     shadowRoot.innerHTML = `
-      <div></div>
       <style ${SC_ATTR} ${SC_ATTR_VERSION}="${SC_VERSION}">
         .shadow-inner-element {}/*!sc*/
         ${SC_ATTR}.g33[id="shadowInnerId"]{content:"shadowInnerName,"}/*!sc*/
       </style>
     `;
+
+    // Then create and append the inner div (so it's not lost)
+    const innerDiv = document.createElement('div');
+    shadowRoot.appendChild(innerDiv);
 
     const sheet = new StyleSheet({ isServer: true, target: innerDiv });
     rehydrateSheet(sheet);
