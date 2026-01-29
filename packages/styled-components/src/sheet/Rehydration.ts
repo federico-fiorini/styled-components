@@ -11,7 +11,9 @@ const MARKER_RE = new RegExp(`^${SC_ATTR}\\.g(\\d+)\\[id="([\\w\\d-]+)"\\].*?"([
  * If the target is a ShadowRoot, return it directly.
  * If the target is an HTMLElement, return its root node if it's a ShadowRoot, otherwise return document.
  */
-const getRehydrationContainer = (target?: InsertionTarget | undefined): Document | ShadowRoot => {
+export const getRehydrationContainer = (
+  target?: InsertionTarget | undefined
+): Document | ShadowRoot => {
   if (!target) {
     return document;
   }

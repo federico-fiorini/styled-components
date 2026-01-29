@@ -224,5 +224,50 @@ describe('reconstructWithOptions', () => {
       // Cleanup
       document.body.removeChild(hostElement);
     });
+
+    it('does not rehydrate when target changes within same container', () => {
+      const hostElement = document.createElement('div');
+      document.body.appendChild(hostElement);
+      const shadowRoot = hostElement.attachShadow({ mode: 'open' });
+
+      // Add server-rendered styles to shadow root
+      shadowRoot.innerHTML = `
+        <style ${SC_ATTR} ${SC_ATTR_VERSION}="${SC_VERSION}">
+          .same-container {}/*!sc*/
+          ${SC_ATTR}.g20[id="sameContainerId"]{content:"sameContainerName,"}/*!sc*/
+        </style>
+      `;
+
+      // Create two different elements in the same shadow root
+      const div1 = document.createElement('div');
+      const div2 = document.createElement('div');
+      shadowRoot.appendChild(div1);
+      shadowRoot.appendChild(div2);
+
+      // Create sheet with first div as target and rehydrate
+      const originalSheet = new StyleSheet({ isServer: false, target: div1 });
+      originalSheet.rehydrate();
+
+      // Verify rehydration happened
+      expect(originalSheet.hasNameForId('sameContainerId', 'sameContainerName')).toBe(true);
+
+      // Count style tags after first rehydration
+      const styleTagsAfterFirst = shadowRoot.querySelectorAll('style');
+      const firstCount = styleTagsAfterFirst.length;
+
+      // Reconstruct with second div (different target, same shadow root container)
+      const newSheet = originalSheet.reconstructWithOptions({ target: div2 });
+
+      // Should NOT rehydrate again (same container)
+      // Style tag count should remain the same
+      const styleTagsAfterSecond = shadowRoot.querySelectorAll('style');
+      expect(styleTagsAfterSecond.length).toBe(firstCount);
+
+      // But should still have the names from the original sheet
+      expect(newSheet.hasNameForId('sameContainerId', 'sameContainerName')).toBe(true);
+
+      // Cleanup
+      document.body.removeChild(hostElement);
+    });
   });
 });
