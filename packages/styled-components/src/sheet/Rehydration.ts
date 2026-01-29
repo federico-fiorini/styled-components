@@ -11,9 +11,7 @@ const MARKER_RE = new RegExp(`^${SC_ATTR}\\.g(\\d+)\\[id="([\\w\\d-]+)"\\].*?"([
  * If the target is a ShadowRoot, return it directly.
  * If the target is an HTMLElement, return its root node if it's a ShadowRoot, otherwise return document.
  */
-export const getRehydrationContainer = (
-  target?: InsertionTarget | undefined
-): Document | ShadowRoot => {
+const getRehydrationContainer = (target?: InsertionTarget | undefined): Document | ShadowRoot => {
   if (!target) {
     return document;
   }
@@ -107,9 +105,9 @@ const rehydrateSheetFromTag = (sheet: Sheet, style: HTMLStyleElement) => {
   }
 };
 
-export const rehydrateSheet = (sheet: Sheet, container?: Document | ShadowRoot) => {
-  const root = container || document;
-  const nodes = root.querySelectorAll(SELECTOR);
+export const rehydrateSheet = (sheet: Sheet) => {
+  const container = getRehydrationContainer(sheet.options.target);
+  const nodes = container.querySelectorAll(SELECTOR);
 
   for (let i = 0, l = nodes.length; i < l; i++) {
     const node = nodes[i] as any as HTMLStyleElement;
