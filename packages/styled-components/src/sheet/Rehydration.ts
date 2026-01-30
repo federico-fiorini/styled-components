@@ -7,6 +7,19 @@ const SELECTOR = `style[${SC_ATTR}][${SC_ATTR_VERSION}="${SC_VERSION}"]`;
 const MARKER_RE = new RegExp(`^${SC_ATTR}\\.g(\\d+)\\[id="([\\w\\d-]+)"\\].*?"([^"]*)`);
 
 /**
+ * Type guard to check if a node is a ShadowRoot.
+ * Uses instanceof when available, with duck-typing fallback for cross-realm scenarios.
+ */
+const isShadowRoot = (node: InsertionTarget | Node): node is ShadowRoot => {
+  return (
+    (typeof ShadowRoot !== 'undefined' && node instanceof ShadowRoot) ||
+    ('host' in node &&
+      // https://dom.spec.whatwg.org/#dom-node-document_fragment_node
+      node.nodeType === 11)
+  );
+};
+
+/**
  * Extract the container (Document or ShadowRoot) from an InsertionTarget.
  * If the target is a ShadowRoot, return it directly.
  * If the target is an HTMLElement, return its root node if it's a ShadowRoot, otherwise return document.
@@ -19,15 +32,15 @@ export const getRehydrationContainer = (
   }
 
   // Check if target is a ShadowRoot
-  if ('host' in target && target.nodeType === 11) {
-    return target as ShadowRoot;
+  if (isShadowRoot(target)) {
+    return target;
   }
 
   // Check if target is an HTMLElement inside a ShadowRoot
   if ('getRootNode' in target) {
     const root = (target as HTMLElement).getRootNode();
-    if (root && 'host' in root && root.nodeType === 11) {
-      return root as ShadowRoot;
+    if (isShadowRoot(root)) {
+      return root;
     }
   }
 
