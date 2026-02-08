@@ -2,4 +2,4 @@
 'styled-components': patch
 ---
 
-Fix SSR styles hydration in Shadow DOM
+Fix SSR styles hydration and global style cleanup in Shadow DOM
